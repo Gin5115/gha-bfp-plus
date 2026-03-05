@@ -86,9 +86,9 @@ if failures:
 
 # Author failure rate
 pr_author = pr.user.login
-author_runs     = [r for r in runs if r.head_commit and
-                   r.head_commit.author and
-                   r.head_commit.author.get('name', '') != '']
+author_runs = [r for r in runs if r.head_commit and
+               r.head_commit.author and
+               r.head_commit.author.name != '']
 author_failures = [r for r in author_runs if r.conclusion == 'failure']
 author_build_num     = len(author_runs)
 author_failure_rate  = len(author_failures) / author_build_num \
