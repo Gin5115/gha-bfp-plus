@@ -126,13 +126,33 @@ def get_llm_explanation(
     )
 
     prompt = (
-        f"A GitHub Actions build has a {prob*100:.1f}% predicted failure probability.\n\n"
-        f"The top contributing factors (SHAP values) are:\n{top_str}\n\n"
-        f"In 2-3 sentences:\n"
-        f"1. Explain in plain English why this build is likely to fail.\n"
-        f"2. Suggest one concrete action the developer can take to reduce the risk.\n"
-        f"Be specific and practical. Do not use jargon."
-    )
+    f"You are a DevOps engineer reviewing a GitHub Actions build prediction.\n\n"
+    f"A machine learning model predicted this build has a "
+    f"{prob*100:.1f}% chance of FAILING.\n\n"
+    f"The SHAP analysis identified these specific contributing factors:\n"
+    f"{top_str}\n\n"
+    f"Additional context:\n"
+    f"- A POSITIVE SHAP value means the feature INCREASES failure probability\n"
+    f"- A NEGATIVE SHAP value means the feature DECREASES failure probability\n"
+    f"- The feature names mean: "
+    f"'failure_rate_recent'=fraction of last 5 builds that failed, "
+    f"'author_failure_rate'=fraction of this author's builds that failed, "
+    f"'failure_rate'=overall project failure rate, "
+    f"'last_build_result'=did the previous build fail (1) or not (0), "
+    f"'time_last_failed_build'=seconds since last failure (low=recent failure), "
+    f"'config_err'=number of errors in workflow YAML file, "
+    f"'config_warn'=number of warnings in workflow YAML file, "
+    f"'config_lines'=total lines in workflow config, "
+    f"'steps_num'=number of steps in the workflow, "
+    f"'jobs_num'=number of jobs in the workflow\n\n"
+    f"Write a 3-sentence response:\n"
+    f"Sentence 1: Name the TOP 2 specific features driving failure and explain "
+    f"what their values mean concretely (e.g. '4 of the last 5 builds failed').\n"
+    f"Sentence 2: Based on those specific features, give ONE concrete technical "
+    f"fix (e.g. 'Fix the YAML syntax error on line X', not 'ask a colleague').\n"
+    f"Sentence 3: State the most important thing to check before merging.\n"
+    f"Be specific. Use the actual feature values. No generic advice."
+)
 
     if provider == "gemini":
         try:
