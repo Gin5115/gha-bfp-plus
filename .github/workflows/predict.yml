@@ -1,0 +1,35 @@
+name: GHA-BFP+ Build Failure Prediction
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests PyGithub PyYAML
+
+      - name: Run prediction bot
+        env:
+          GITHUB_TOKEN:     ${{ secrets.GITHUB_TOKEN }}
+          PREDICTOR_API_URL: ${{ secrets.PREDICTOR_API_URL }}
+          PR_NUMBER:        ${{ github.event.pull_request.number }}
+          REPO_NAME:        ${{ github.repository }}
+          COMMIT_SHA:       ${{ github.event.pull_request.head.sha }}
+        run: python bot/predict_pr.py
