@@ -172,6 +172,15 @@ print(f"  repo_files={repository_files}, "
       f"language={repository_language}, "
       f"owner={repository_owner_type}")
 
+# Wake up Render free tier instance first
+print("Waking up API...")
+try:
+    requests.get(f"{PREDICTOR_API_URL}/health", timeout=30)
+    print("  API is awake.")
+except:
+    print("  Wake-up ping failed, proceeding anyway...")
+
+
 # ── 5. Call prediction API ────────────────────────────────────────────────────
 payload = {
     "files_pushed":           safe(files_pushed),
@@ -203,11 +212,24 @@ payload = {
 }
 
 print(f"\nCalling API: {PREDICTOR_API_URL}/predict-explain?llm=gemini")
-response = requests.post(
-    f"{PREDICTOR_API_URL}/predict-explain?llm=gemini",
-    json=payload,
-    timeout=60
-)
+# Render free tier spins down — retry with longer timeout
+for attempt in range(3):
+    try:
+        print(f"  API call attempt {attempt+1}/3...")
+        response = requests.post(
+            f"{PREDICTOR_API_URL}/predict-explain?llm=gemini",
+            json=payload,
+            timeout=120
+        )
+        response.raise_for_status()
+        break
+    except requests.exceptions.Timeout:
+        print(f"  Timeout on attempt {attempt+1}, retrying...")
+        if attempt == 2:
+            raise
+    except requests.exceptions.RequestException as e:
+        print(f"  Error: {e}")
+        raise
 response.raise_for_status()
 result = response.json()
 
