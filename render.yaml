@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: gha-bfp-plus
+    runtime: python
+    buildCommand: "./render_build.sh"
+    startCommand: "python api/app.py"
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0
